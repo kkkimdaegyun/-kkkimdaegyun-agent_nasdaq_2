@@ -5,27 +5,50 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>AI Macro & Liquidity Dashboard</title>
     <style>
-        /* --- CSS 디자인 (깔끔한 다크테마) --- */
-        body, html {
-            margin: 0; padding: 0; height: 100vh; overflow: hidden;
+        /* --- 1. CSS 리셋 및 전체 화면 고정 (차트 잘림 방지 핵심) --- */
+        html, body {
+            margin: 0; padding: 0;
+            height: 100% !important; /* 무조건 높이 100% 차지 */
+            width: 100% !important;
+            overflow: hidden; /* 페이지 자체 스크롤 방지 */
+            background-color: #131722;
+        }
+
+        body {
             font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            background-color: #131722; color: #d1d4dc; display: flex;
+            color: #d1d4dc;
+            display: flex; /* 사이드바와 메인 화면 가로 배치 */
         }
+
+        /* --- 2. 왼쪽 사이드바 디자인 --- */
         .sidebar {
-            width: 280px; background-color: #1e222d; border-right: 1px solid #2a2e39;
-            display: flex; flex-direction: column; padding: 20px; box-sizing: border-box; z-index: 10;
+            width: 280px;
+            min-width: 280px; /* 너비 고정 */
+            background-color: #1e222d;
+            border-right: 1px solid #2a2e39;
+            display: flex;
+            flex-direction: column;
+            padding: 20px;
+            box-sizing: border-box;
+            height: 100%; /* 부모(body) 높이 가득 채움 */
+            z-index: 10;
         }
+
         .sidebar h2 { margin: 0 0 10px 0; font-size: 1.1rem; color: #ffffff; }
         .sidebar-subtitle { font-size: 0.8rem; color: #787b86; margin-bottom: 20px; border-bottom: 1px solid #2a2e39; padding-bottom: 10px; }
+        
         .menu-group { margin-bottom: 25px; }
         .menu-group-title { font-size: 0.75rem; color: #787b86; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 10px; padding-left: 5px; }
+        
         .menu-item {
             padding: 12px 15px; background-color: transparent; border-radius: 8px; cursor: pointer;
             transition: all 0.2s ease; font-weight: 500; font-size: 0.95rem; color: #b2b5be; margin-bottom: 2px;
+            display: flex; align-items: center; gap: 10px;
         }
         .menu-item:hover { background-color: #2a2e39; color: #ffffff; }
-        .menu-item.active { background-color: #2962ff; color: #ffffff; }
+        .menu-item.active { background-color: #2962ff !important; color: #ffffff !important; }
         
+        /* 하단 매크로 상태판 */
         .macro-status-panel {
             margin-top: auto; background-color: #131722; border-radius: 10px;
             padding: 15px; border: 1px solid #2a2e39;
@@ -35,8 +58,22 @@
         .status-label { color: #787b86; }
         .status-value { font-weight: 700; font-family: monospace; font-size: 1rem; }
         
-        .main-content { flex: 1; height: 100vh; position: relative; }
-        .tradingview-widget-container { width: 100%; height: 100%; }
+        /* --- 3. 오른쪽 메인 차트 화면 (꽉 차게 설정) --- */
+        .main-content {
+            flex: 1; /* 남은 가로 공간 100% 차지 */
+            height: 100% !important; /* 부모(body) 높이 가득 채움 */
+            position: relative;
+            background-color: #131722; /* 기본 배경색 */
+        }
+
+        /* 트레이딩뷰 & FRED 컨테이너 (부모 안에 꽉 차게) */
+        .chart-container {
+            width: 100%;
+            height: 100% !important;
+            border: none;
+            display: block;
+        }
+
     </style>
 </head>
 <body>
@@ -47,17 +84,17 @@
 
         <div class="menu-group">
             <div class="menu-group-title">Markets</div>
-            <div class="menu-item active" onclick="changeChart('OANDA:NAS100USD', this)">📈 나스닥 (CFD)</div>
-            <div class="menu-item" onclick="changeChart('BINANCE:BTCUSD', this)">🪙 비트코인</div>
-            <div class="menu-item" onclick="changeChart('TVC:DXY', this)">🦅 달러 인덱스</div>
-            <div class="menu-item" onclick="changeChart('TVC:USOIL', this)">🛢️ WTI 원유 선물</div>
-            <div class="menu-item" onclick="changeChart('FX_IDC:USDKRW', this)">💵 달러/원 환율</div>
+            <div class="menu-item active" onclick="changeChart('OANDA:NAS100USD', this, '15', 'TV')">📈 나스닥 (CFD)</div>
+            <div class="menu-item" onclick="changeChart('BINANCE:BTCUSD', this, '15', 'TV')">🪙 비트코인</div>
+            <div class="menu-item" onclick="changeChart('TVC:DXY', this, '15', 'TV')">🦅 달러 인덱스</div>
+            <div class="menu-item" onclick="changeChart('TVC:USOIL', this, '15', 'TV')">🛢️ WTI 원유 선물</div>
+            <div class="menu-item" onclick="changeChart('FX_IDC:USDKRW', this, '15', 'TV')">💵 달러/원 환율</div>
         </div>
 
         <div class="menu-group">
             <div class="menu-group-title">Fed & Treasury</div>
-            <div class="menu-item" onclick="changeChart('FRED:WTREGEN', this)">🏦 TGA (재무부 잔고)</div>
-            <div class="menu-item" onclick="changeChart('FRED:RRPONTSYD', this)">🔄 RRP (역레포 잔고)</div>
+            <div class="menu-item" onclick="changeChart('WTREGEN', this, 'D', 'FRED')">🏦 TGA (재무부 잔고)</div>
+            <div class="menu-item" onclick="changeChart('RRPONTSYD', this, 'D', 'FRED')">🔄 RRP (역레포 잔고)</div>
         </div>
 
         <div class="macro-status-panel">
@@ -74,54 +111,83 @@
     </div>
 
     <div class="main-content">
-        <div id="tv_chart_container" class="tradingview-widget-container"></div>
+        <div id="chart_holder" style="width:100%; height:100%;"></div>
     </div>
 
     <script type="text/javascript" src="https://s3.tradingview.com/tv.js"></script>
     <script type="text/javascript">
-        // 1. 차트 생성기
-        function createWidget(symbol) {
-            document.getElementById('tv_chart_container').innerHTML = '';
+        
+        // --- [핵심] 차트 메뉴 클릭 이벤트 (타입 변수 추가) ---
+        function changeChart(symbol, element, interval, type) {
+            // 1. 모든 메뉴의 active 클래스 제거
+            document.querySelectorAll('.menu-item').forEach(el => el.classList.remove('active'));
+            // 2. 클릭한 메뉴에 active 클래스 추가 (색상 변경)
+            element.classList.add('active');
+            
+            // 3. 차트 홀더 초기화 (기존 차트 삭제)
+            document.getElementById('chart_holder').innerHTML = '';
+
+            // 4. 타입에 따라 다른 차트 생성
+            if(type === 'TV') {
+                createTradingViewWidget(symbol, interval);
+            } else if(type === 'FRED') {
+                createFredWidget(symbol);
+            }
+        }
+
+        // --- 1. 트레이딩뷰 차트 생성기 (Dark 테마) ---
+        function createTradingViewWidget(symbol, interval) {
+            const container = document.createElement('div');
+            container.id = 'tv_widget_container';
+            container.className = 'chart-container';
+            document.getElementById('chart_holder').appendChild(container);
+
             new TradingView.widget({
-                "autosize": true,
+                "autosize": true, // 부모 컨테이너 크기에 100% 맞춤
                 "symbol": symbol,
-                "interval": "15",
+                "interval": interval,
                 "timezone": "Asia/Seoul",
-                "theme": "dark",
-                "style": "1",
-                "locale": "kr",
-                "enable_publishing": false,
+                "theme": "dark", // 다크 테마
+                "style": "1", // 캔들 차트
+                "locale": "kr", // 한국어
                 "backgroundColor": "#131722",
                 "gridColor": "#2a2e39",
-                "hide_top_toolbar": false,
-                "hide_legend": false,
-                "save_image": false,
-                "container_id": "tv_chart_container"
+                "container_id": "tv_widget_container"
             });
         }
 
-        // 2. 메뉴 클릭 시 차트 스위칭
-        function changeChart(symbol, element) {
-            document.querySelectorAll('.menu-item').forEach(el => el.classList.remove('active'));
-            element.classList.add('active');
-            createWidget(symbol);
+        // --- 2. [신규] FRED 공식 차트 생성기 (Iframe 방식) ---
+        function createFredWidget(symbol) {
+            // FRED 공식 임베드 URL (Daily로 설정)
+            // FRED 사이트 디자인 그대로 가져옵니다.
+            const fredUrl = `https://fred.stlouisfed.org/graph/embed.html?fq=Daily&id=${symbol}&mode=fred&type=line`;
+            
+            const iframe = document.createElement('iframe');
+            iframe.src = fredUrl;
+            iframe.className = 'chart-container'; // CSS 클래스 적용
+            iframe.setAttribute('frameborder', '0');
+            iframe.setAttribute('scrolling', 'no'); // 내부 스크롤 방지
+            
+            document.getElementById('chart_holder').appendChild(iframe);
         }
 
-        // 3. 트루인플레이션 실시간 Fetch (API 호출 - CORS 보안 에러 우회 적용)
+        // --- 3. 트루인플레이션 실시간 Fetch ---
         async function fetchTruflation() {
             const truflationEl = document.getElementById('truflation-val');
             try {
-                // 브라우저 보안 정책(CORS)에 막히지 않도록 프록시 터널을 경유합니다.
-                const proxyUrl = 'https://api.allorigins.win/raw?url=';
-                const targetUrl = 'https://api.truflation.com/current/us/yoy';
+                const proxyUrl = 'https://api.allorigins.win/get?url=';
+                const targetUrl = encodeURIComponent('https://api.truflation.com/current/us/yoy');
                 
-                const response = await fetch(proxyUrl + encodeURIComponent(targetUrl));
+                const response = await fetch(proxyUrl + targetUrl);
                 if (!response.ok) throw new Error('Network response was not ok');
-                const data = await response.text();
-                const inflationRate = parseFloat(data).toFixed(2);
                 
+                const data = await response.json(); 
+                const inflationRate = parseFloat(data.contents).toFixed(2);
+                
+                if(isNaN(inflationRate)) throw new Error('NaN returned');
+
                 truflationEl.innerText = inflationRate + '%';
-                truflationEl.style.color = '#ff9800'; // 주황색
+                truflationEl.style.color = '#ff9800'; 
             } catch (error) {
                 console.error('Truflation fetch error:', error);
                 truflationEl.innerText = 'API 지연';
@@ -129,7 +195,7 @@
             }
         }
 
-        // 4. QRA 일정 계산기
+        // --- 4. QRA 일정 계산기 ---
         function calculateQRAStatus() {
             const today = new Date();
             const month = today.getMonth() + 1;
@@ -139,29 +205,27 @@
             if ([1, 4, 7, 10].includes(month)) {
                 if (date >= 25) {
                     qraEl.innerText = "⚠️ 발표 임박";
-                    qraEl.style.color = "#f44336"; // 빨강
+                    qraEl.style.color = "#f44336"; 
                 } else {
                     qraEl.innerText = `⏳ ${month}월 말 발표`;
-                    qraEl.style.color = "#ffeb3b"; // 노랑
+                    qraEl.style.color = "#ffeb3b"; 
                 }
             } else {
                 qraEl.innerText = "✅ 평시 (안정)";
-                qraEl.style.color = "#4caf50"; // 초록
+                qraEl.style.color = "#4caf50"; 
             }
         }
 
-        // 5. 페이지 로드 시 즉시 실행 및 자동 새로고침(setInterval) 세팅
+        // --- 5. 페이지 로드 시 즉시 실행 ---
         window.onload = function() {
-            // 초기 렌더링 시 변경된 나스닥 심볼을 띄워줍니다.
-            createWidget('OANDA:NAS100USD'); 
+            // 초기 렌더링 시 나스닥 트레이딩뷰 차트로 시작
+            createTradingViewWidget('OANDA:NAS100USD', '15'); 
             
-            // 데이터 즉시 불러오기
             fetchTruflation();
             calculateQRAStatus();
 
-            // 백그라운드 실시간 업데이트 세팅 (새로고침 안 해도 알아서 숫자 바뀜)
-            setInterval(fetchTruflation, 600000); // 10분마다
-            setInterval(calculateQRAStatus, 3600000); // 1시간마다
+            setInterval(fetchTruflation, 600000); 
+            setInterval(calculateQRAStatus, 3600000); 
         };
     </script>
 </body>
