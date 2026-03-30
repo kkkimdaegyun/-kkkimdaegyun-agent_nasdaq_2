@@ -5,33 +5,24 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>AI Macro & Liquidity Dashboard</title>
     <style>
-        /* --- 1. CSS 리셋 및 전체 화면 고정 (차트 잘림 방지 핵심) --- */
+        /* CSS 리셋 및 전체 화면 고정 */
         html, body {
             margin: 0; padding: 0;
-            height: 100% !important; /* 무조건 높이 100% 차지 */
-            width: 100% !important;
-            overflow: hidden; /* 페이지 자체 스크롤 방지 */
-            background-color: #131722;
+            height: 100% !important; width: 100% !important;
+            overflow: hidden; background-color: #131722;
         }
 
         body {
             font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            color: #d1d4dc;
-            display: flex; /* 사이드바와 메인 화면 가로 배치 */
+            color: #d1d4dc; display: flex;
         }
 
-        /* --- 2. 왼쪽 사이드바 디자인 --- */
+        /* 왼쪽 사이드바 디자인 */
         .sidebar {
-            width: 280px;
-            min-width: 280px; /* 너비 고정 */
-            background-color: #1e222d;
-            border-right: 1px solid #2a2e39;
-            display: flex;
-            flex-direction: column;
-            padding: 20px;
-            box-sizing: border-box;
-            height: 100%; /* 부모(body) 높이 가득 채움 */
-            z-index: 10;
+            width: 280px; min-width: 280px;
+            background-color: #1e222d; border-right: 1px solid #2a2e39;
+            display: flex; flex-direction: column; padding: 20px; box-sizing: border-box;
+            height: 100%; z-index: 10;
         }
 
         .sidebar h2 { margin: 0 0 10px 0; font-size: 1.1rem; color: #ffffff; }
@@ -58,22 +49,12 @@
         .status-label { color: #787b86; }
         .status-value { font-weight: 700; font-family: monospace; font-size: 1rem; }
         
-        /* --- 3. 오른쪽 메인 차트 화면 (꽉 차게 설정) --- */
+        /* 오른쪽 메인 차트 화면 */
         .main-content {
-            flex: 1; /* 남은 가로 공간 100% 차지 */
-            height: 100% !important; /* 부모(body) 높이 가득 채움 */
-            position: relative;
-            background-color: #131722; /* 기본 배경색 */
+            flex: 1; height: 100% !important; position: relative; background-color: #131722;
         }
 
-        /* 트레이딩뷰 & FRED 컨테이너 (부모 안에 꽉 차게) */
-        .chart-container {
-            width: 100%;
-            height: 100% !important;
-            border: none;
-            display: block;
-        }
-
+        .chart-container { width: 100%; height: 100% !important; border: none; display: block; }
     </style>
 </head>
 <body>
@@ -86,7 +67,7 @@
             <div class="menu-group-title">Markets</div>
             <div class="menu-item active" onclick="changeChart('OANDA:NAS100USD', this, '15', 'TV')">📈 나스닥 (CFD)</div>
             <div class="menu-item" onclick="changeChart('BINANCE:BTCUSD', this, '15', 'TV')">🪙 비트코인</div>
-            <div class="menu-item" onclick="changeChart('TVC:DXY', this, '15', 'TV')">🦅 달러 인덱스</div>
+            <div class="menu-item" onclick="changeChart('CAPITALCOM:DXY', this, '15', 'TV')">🦅 달러 인덱스</div>
             <div class="menu-item" onclick="changeChart('TVC:USOIL', this, '15', 'TV')">🛢️ WTI 원유 선물</div>
             <div class="menu-item" onclick="changeChart('FX_IDC:USDKRW', this, '15', 'TV')">💵 달러/원 환율</div>
         </div>
@@ -117,17 +98,13 @@
     <script type="text/javascript" src="https://s3.tradingview.com/tv.js"></script>
     <script type="text/javascript">
         
-        // --- [핵심] 차트 메뉴 클릭 이벤트 (타입 변수 추가) ---
+        // 차트 메뉴 클릭 이벤트
         function changeChart(symbol, element, interval, type) {
-            // 1. 모든 메뉴의 active 클래스 제거
             document.querySelectorAll('.menu-item').forEach(el => el.classList.remove('active'));
-            // 2. 클릭한 메뉴에 active 클래스 추가 (색상 변경)
             element.classList.add('active');
             
-            // 3. 차트 홀더 초기화 (기존 차트 삭제)
             document.getElementById('chart_holder').innerHTML = '';
 
-            // 4. 타입에 따라 다른 차트 생성
             if(type === 'TV') {
                 createTradingViewWidget(symbol, interval);
             } else if(type === 'FRED') {
@@ -135,7 +112,7 @@
             }
         }
 
-        // --- 1. 트레이딩뷰 차트 생성기 (Dark 테마) ---
+        // 트레이딩뷰 차트 생성기
         function createTradingViewWidget(symbol, interval) {
             const container = document.createElement('div');
             container.id = 'tv_widget_container';
@@ -143,35 +120,36 @@
             document.getElementById('chart_holder').appendChild(container);
 
             new TradingView.widget({
-                "autosize": true, // 부모 컨테이너 크기에 100% 맞춤
+                "autosize": true,
                 "symbol": symbol,
                 "interval": interval,
                 "timezone": "Asia/Seoul",
-                "theme": "dark", // 다크 테마
-                "style": "1", // 캔들 차트
-                "locale": "kr", // 한국어
+                "theme": "dark",
+                "style": "1",
+                "locale": "kr",
                 "backgroundColor": "#131722",
                 "gridColor": "#2a2e39",
                 "container_id": "tv_widget_container"
             });
         }
 
-        // --- 2. [신규] FRED 공식 차트 생성기 (Iframe 방식) ---
+        // FRED 우회 차트 생성기 (실시간 이미지 방식)
         function createFredWidget(symbol) {
-            // FRED 공식 임베드 URL (Daily로 설정)
-            // FRED 사이트 디자인 그대로 가져옵니다.
-            const fredUrl = `https://fred.stlouisfed.org/graph/embed.html?fq=Daily&id=${symbol}&mode=fred&type=line`;
+            // 연결 거부(Iframe 차단)를 피하기 위해 FRED에서 공식 제공하는 실시간 렌더링 그래프 이미지를 활용합니다.
+            const fredImageUrl = `https://fred.stlouisfed.org/graph/fredgraph.png?id=${symbol}`;
             
-            const iframe = document.createElement('iframe');
-            iframe.src = fredUrl;
-            iframe.className = 'chart-container'; // CSS 클래스 적용
-            iframe.setAttribute('frameborder', '0');
-            iframe.setAttribute('scrolling', 'no'); // 내부 스크롤 방지
+            const img = document.createElement('img');
+            img.src = fredImageUrl;
+            // 이미지가 메인 화면에 예쁘게 꽉 차도록 CSS 설정
+            img.style.width = '100%';
+            img.style.height = '100%';
+            img.style.objectFit = 'contain'; // 비율 유지하면서 꽉 채움
+            img.style.backgroundColor = '#ffffff'; // FRED 특유의 하얀 배경색 지정
             
-            document.getElementById('chart_holder').appendChild(iframe);
+            document.getElementById('chart_holder').appendChild(img);
         }
 
-        // --- 3. 트루인플레이션 실시간 Fetch ---
+        // 트루인플레이션 실시간 Fetch
         async function fetchTruflation() {
             const truflationEl = document.getElementById('truflation-val');
             try {
@@ -195,7 +173,7 @@
             }
         }
 
-        // --- 4. QRA 일정 계산기 ---
+        // QRA 일정 계산기
         function calculateQRAStatus() {
             const today = new Date();
             const month = today.getMonth() + 1;
@@ -216,11 +194,9 @@
             }
         }
 
-        // --- 5. 페이지 로드 시 즉시 실행 ---
+        // 페이지 로드 시 초기 실행
         window.onload = function() {
-            // 초기 렌더링 시 나스닥 트레이딩뷰 차트로 시작
             createTradingViewWidget('OANDA:NAS100USD', '15'); 
-            
             fetchTruflation();
             calculateQRAStatus();
 
