@@ -66,9 +66,7 @@
         <div class="menu-group">
             <div class="menu-group-title">Markets</div>
             <div class="menu-item active" onclick="changeChart('OANDA:NAS100USD', this, '15', 'TV')">📈 나스닥 (CFD)</div>
-            
             <div class="menu-item" onclick="changeChart('CRYPTO:BTCUSD', this, '15', 'TV')">🪙 비트코인</div>
-            
             <div class="menu-item" onclick="changeChart('CAPITALCOM:DXY', this, '15', 'TV')">🦅 달러 인덱스</div>
             <div class="menu-item" onclick="changeChart('TVC:USOIL', this, '15', 'TV')">🛢️ WTI 원유 선물</div>
             <div class="menu-item" onclick="changeChart('FX_IDC:USDKRW', this, '15', 'TV')">💵 달러/원 환율</div>
@@ -127,24 +125,27 @@
                 "theme": "dark",
                 "style": "1",
                 "locale": "kr",
-                "hide_volume": true, // 🔴 핵심: 차트 비율을 망치는 거래량(Volume) 바 숨기기
+                "hide_volume": true,
                 "backgroundColor": "#131722",
                 "gridColor": "#2a2e39",
                 "container_id": "tv_widget_container"
             });
         }
 
+        // 🔴 핵심 수정 부분: FRED의 인터랙티브(마우스 오버) 공식 임베드 지원 기능 적용
         function createFredWidget(symbol) {
-            const fredImageUrl = `https://fred.stlouisfed.org/graph/fredgraph.png?id=${symbol}`;
+            // 연결 거부를 피하고 마우스 오버를 지원하는 공식 iframe 주소 (graph-landing.php)
+            const fredUrl = `https://fred.stlouisfed.org/graph/graph-landing.php?id=${symbol}`;
             
-            const img = document.createElement('img');
-            img.src = fredImageUrl;
-            img.style.width = '100%';
-            img.style.height = '100%';
-            img.style.objectFit = 'contain'; 
-            img.style.backgroundColor = '#ffffff'; 
+            const iframe = document.createElement('iframe');
+            iframe.src = fredUrl;
+            iframe.style.width = '100%';
+            iframe.style.height = '100%';
+            iframe.style.border = 'none';
+            iframe.style.backgroundColor = '#ffffff'; // 배경색 하얀색 처리
+            iframe.setAttribute('scrolling', 'no');
             
-            document.getElementById('chart_holder').appendChild(img);
+            document.getElementById('chart_holder').appendChild(iframe);
         }
 
         async function fetchTruflation() {
