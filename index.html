@@ -132,17 +132,24 @@
             });
         }
 
-        // 🔴 핵심 수정 부분: FRED의 인터랙티브(마우스 오버) 공식 임베드 지원 기능 적용
+        // 🔴 핵심 수정: FRED 공식 인터랙티브 차트 (마우스 오버 지원)
         function createFredWidget(symbol) {
-            // 연결 거부를 피하고 마우스 오버를 지원하는 공식 iframe 주소 (graph-landing.php)
-            const fredUrl = `https://fred.stlouisfed.org/graph/graph-landing.php?id=${symbol}`;
+            // FRED는 단순 지표명으로는 외부 연결을 거부합니다. 
+            // 마우스 호버가 지원되는 정식 '고유 그래프 ID (g=...)'를 매칭해줍니다.
+            let graphId = '';
+            if (symbol === 'WTREGEN') graphId = '3MKE';     // TGA 고유 ID
+            else if (symbol === 'RRPONTSYD') graphId = '1wq8X'; // RRP 고유 ID
+            
+            // g= 파라미터가 들어가야 연결 거부가 풀리고 자바스크립트 상호작용이 켜집니다.
+            const fredUrl = `https://fred.stlouisfed.org/graph/graph-landing.php?g=${graphId}`;
             
             const iframe = document.createElement('iframe');
             iframe.src = fredUrl;
+            iframe.className = 'chart-container';
             iframe.style.width = '100%';
             iframe.style.height = '100%';
             iframe.style.border = 'none';
-            iframe.style.backgroundColor = '#ffffff'; // 배경색 하얀색 처리
+            iframe.style.backgroundColor = '#ffffff'; 
             iframe.setAttribute('scrolling', 'no');
             
             document.getElementById('chart_holder').appendChild(iframe);
