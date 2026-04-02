@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>AI Macro & Liquidity Dashboard</title>
     <style>
-        /* CSS 리셋 및 전체 화면 고정 */
+        /* CSS 리셋 및 꽉 찬 화면 유지 */
         html, body {
             margin: 0; padding: 0;
             height: 100% !important; width: 100% !important;
@@ -65,17 +65,17 @@
 
         <div class="menu-group">
             <div class="menu-group-title">Markets</div>
-            <div class="menu-item active" onclick="changeChart('OANDA:NAS100USD', this, '15', 'TV')">📈 나스닥 (CFD)</div>
-            <div class="menu-item" onclick="changeChart('CRYPTO:BTCUSD', this, '15', 'TV')">🪙 비트코인</div>
-            <div class="menu-item" onclick="changeChart('CAPITALCOM:DXY', this, '15', 'TV')">🦅 달러 인덱스</div>
-            <div class="menu-item" onclick="changeChart('TVC:USOIL', this, '15', 'TV')">🛢️ WTI 원유 선물</div>
-            <div class="menu-item" onclick="changeChart('FX_IDC:USDKRW', this, '15', 'TV')">💵 달러/원 환율</div>
+            <div class="menu-item active" onclick="changeChart('OANDA:NAS100USD', this, '15')">📈 나스닥 (CFD)</div>
+            <div class="menu-item" onclick="changeChart('CRYPTO:BTCUSD', this, '15')">🪙 비트코인</div>
+            <div class="menu-item" onclick="changeChart('CAPITALCOM:DXY', this, '15')">🦅 달러 인덱스</div>
+            <div class="menu-item" onclick="changeChart('TVC:USOIL', this, '15')">🛢️ WTI 원유 선물</div>
+            <div class="menu-item" onclick="changeChart('FX_IDC:USDKRW', this, '15')">💵 달러/원 환율</div>
         </div>
 
         <div class="menu-group">
             <div class="menu-group-title">Fed & Treasury</div>
-            <div class="menu-item" onclick="changeChart('WTREGEN', this, 'D', 'FRED')">🏦 TGA (재무부 잔고)</div>
-            <div class="menu-item" onclick="changeChart('RRPONTSYD', this, 'D', 'FRED')">🔄 RRP (역레포 잔고)</div>
+            <div class="menu-item" onclick="changeChart('FRED:WTREGEN', this, '1D')">🏦 TGA (재무부 잔고)</div>
+            <div class="menu-item" onclick="changeChart('FRED:RRPONTSYD', this, '1D')">🔄 RRP (역레포 잔고)</div>
         </div>
 
         <div class="macro-status-panel">
@@ -98,19 +98,18 @@
     <script type="text/javascript" src="https://s3.tradingview.com/tv.js"></script>
     <script type="text/javascript">
         
-        function changeChart(symbol, element, interval, type) {
+        // 메뉴 클릭 시 실행
+        function changeChart(symbol, element, interval) {
             document.querySelectorAll('.menu-item').forEach(el => el.classList.remove('active'));
             element.classList.add('active');
             
             document.getElementById('chart_holder').innerHTML = '';
-
-            if(type === 'TV') {
-                createTradingViewWidget(symbol, interval);
-            } else if(type === 'FRED') {
-                createFredWidget(symbol);
-            }
+            
+            // 이제 모든 지표를 트레이딩뷰 고퀄리티 위젯 하나로 통일합니다!
+            createTradingViewWidget(symbol, interval);
         }
 
+        // 트레이딩뷰 차트 생성기
         function createTradingViewWidget(symbol, interval) {
             const container = document.createElement('div');
             container.id = 'tv_widget_container';
@@ -120,39 +119,16 @@
             new TradingView.widget({
                 "autosize": true,
                 "symbol": symbol,
-                "interval": interval,
+                "interval": interval, // 15분 또는 1D(일봉) 자동 적용
                 "timezone": "Asia/Seoul",
                 "theme": "dark",
-                "style": "1",
+                "style": "1", // 1 = 캔들 (TGA 같은 선 차트도 자동으로 최적화되어 나옴)
                 "locale": "kr",
-                "hide_volume": true,
+                "hide_volume": true, // 차트 찌그러짐 방지용 거래량 끄기
                 "backgroundColor": "#131722",
                 "gridColor": "#2a2e39",
                 "container_id": "tv_widget_container"
             });
-        }
-
-        // 🔴 핵심 수정: FRED 공식 인터랙티브 차트 (마우스 오버 지원)
-        function createFredWidget(symbol) {
-            // FRED는 단순 지표명으로는 외부 연결을 거부합니다. 
-            // 마우스 호버가 지원되는 정식 '고유 그래프 ID (g=...)'를 매칭해줍니다.
-            let graphId = '';
-            if (symbol === 'WTREGEN') graphId = '3MKE';     // TGA 고유 ID
-            else if (symbol === 'RRPONTSYD') graphId = '1wq8X'; // RRP 고유 ID
-            
-            // g= 파라미터가 들어가야 연결 거부가 풀리고 자바스크립트 상호작용이 켜집니다.
-            const fredUrl = `https://fred.stlouisfed.org/graph/graph-landing.php?g=${graphId}`;
-            
-            const iframe = document.createElement('iframe');
-            iframe.src = fredUrl;
-            iframe.className = 'chart-container';
-            iframe.style.width = '100%';
-            iframe.style.height = '100%';
-            iframe.style.border = 'none';
-            iframe.style.backgroundColor = '#ffffff'; 
-            iframe.setAttribute('scrolling', 'no');
-            
-            document.getElementById('chart_holder').appendChild(iframe);
         }
 
         async function fetchTruflation() {
@@ -199,6 +175,7 @@
         }
 
         window.onload = function() {
+            // 초기 화면 나스닥 설정
             createTradingViewWidget('OANDA:NAS100USD', '15'); 
             fetchTruflation();
             calculateQRAStatus();
